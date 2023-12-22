@@ -17,8 +17,9 @@ builder.Services.AddOpenTelemetry()
         {
           b.SetResourceBuilder(
                   ResourceBuilder.CreateDefault()
-                      .AddService(TelemetryConstants.ServiceName, serviceVersion: TelemetryConstants.ServiceVersion, serviceInstanceId: "w1155"))
+                      .AddService(TelemetryConstants.ServiceName, serviceVersion: TelemetryConstants.ServiceVersion, serviceInstanceId: Environment.MachineName + Guid.NewGuid()))
               .AddRuntimeInstrumentation()
+              .AddProcessInstrumentation()
               .AddAspNetCoreInstrumentation()
               .AddConsoleExporter()
               .AddOtlpExporter(
@@ -72,6 +73,15 @@ app.MapGet(
           return forecast;
         })
     .WithName("GetWeatherForecast")
+    .WithOpenApi();
+
+app.MapGet(
+        "/GC",
+        () =>
+        {
+          GC.Collect();
+        })
+    .WithName("TriggerGarbageCollection")
     .WithOpenApi();
 
 app.Run();
