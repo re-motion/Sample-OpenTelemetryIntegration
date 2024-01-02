@@ -18,12 +18,12 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
       - ./data/prometheus_data:/prometheus
     ports:
-      - "9090:9090"
+      - "9090:9090" # Web interface + API
 
   grafana:
     image: grafana/grafana-oss
     ports:
-      - "3000:3000"
+      - "3000:3000" # Web interface
     user: '104'
     volumes:
       - ./data/grafana_data:/var/lib/grafana
