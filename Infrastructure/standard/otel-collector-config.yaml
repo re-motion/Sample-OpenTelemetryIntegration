@@ -49,5 +49,5 @@ service:
       exporters: [logging]
     metrics:
       receivers: [otlp]
-      processors: []
+      processors: [batch]
       exporters: [logging, prometheus, file/metric]
