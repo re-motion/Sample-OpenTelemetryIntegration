@@ -28,6 +28,13 @@ builder.Services.AddOpenTelemetry()
                           options.Endpoint = new Uri("http://localhost:4317");
                           options.Protocol = OtlpExportProtocol.Grpc;
                           metricOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
+                      })
+              .AddOtlpExporter(
+                      (options, metricOptions) =>
+                      {
+                          options.Endpoint = new Uri("http://localhost:4318");
+                          options.Protocol = OtlpExportProtocol.Grpc;
+                          metricOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
                       });
         })
     .WithTracing(
