@@ -1,4 +1,5 @@
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -8,17 +9,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Logging.AddOpenTelemetry(
+        logging =>
+        {
+            logging.IncludeScopes = true;
+
+            logging.AddOtlpExporter();
+        });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenTelemetry()
+    .ConfigureResource(
+            builder =>
+            {
+                builder.AddService(TelemetryConstants.ServiceName, serviceVersion: TelemetryConstants.ServiceVersion, serviceInstanceId: Environment.MachineName);
+            })
     .WithMetrics(
         b =>
         {
-          b.SetResourceBuilder(
-                  ResourceBuilder.CreateDefault()
-                      .AddService(TelemetryConstants.ServiceName, serviceVersion: TelemetryConstants.ServiceVersion, serviceInstanceId: Environment.MachineName + Guid.NewGuid()))
-              .AddRuntimeInstrumentation()
+            b.AddRuntimeInstrumentation()
               .AddProcessInstrumentation()
               .AddAspNetCoreInstrumentation()
               .AddConsoleExporter()
@@ -40,12 +50,14 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(
         b =>
         {
-          b.SetResourceBuilder(
-                  ResourceBuilder.CreateDefault()
-                      .AddService(TelemetryConstants.ServiceName, serviceVersion: TelemetryConstants.ServiceVersion))
-              .AddAspNetCoreInstrumentation()
+          b.AddAspNetCoreInstrumentation()
               .AddConsoleExporter()
-              .AddOtlpExporter();
+              .AddOtlpExporter(
+                      options =>
+                      {
+                          options.Endpoint = new Uri("http://localhost:4317");
+                          options.Protocol = OtlpExportProtocol.Grpc;
+                      });
         });
 
 var app = builder.Build();
@@ -68,6 +80,7 @@ app.MapGet(
         "/weatherforecast",
         () =>
         {
+          app.Logger.Log(LogLevel.Information, "Generating forecast...");
           using var _ = Telemetry.MyActivitySource.StartActivity("Weatherforecast");
           var forecast = Enumerable.Range(1, 5).Select(
                   index =>
