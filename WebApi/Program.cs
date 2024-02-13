@@ -28,10 +28,13 @@ builder.Services.AddOpenTelemetry()
     .WithMetrics(
         b =>
         {
-            b.AddRuntimeInstrumentation()
-              .AddProcessInstrumentation()
-              .AddAspNetCoreInstrumentation()
+            b
+              //.AddRuntimeInstrumentation()
+              //.AddProcessInstrumentation()
+              //.AddAspNetCoreInstrumentation()
               .AddConsoleExporter()
+              //.AddReader(new BaseExportingMetricReader(new PerformanceCounterExporter()))
+              //.AddPerformanceCounterExporter(1000)
               .AddOtlpExporter(
                       (options, metricOptions) =>
                       {
